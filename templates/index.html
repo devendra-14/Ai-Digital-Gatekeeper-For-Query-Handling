@@ -1,1 +1,614 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Based Digital Gatekeeper</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:#f1f5f9;color:#0f172a}
+h1,h2,h3{font-family:'Syne',sans-serif}
+select,input,textarea,button{font-family:'DM Sans',sans-serif}
+.navbar{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#0f172a 100%);padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+.navbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#6d28d9,#f59e0b,#6d28d9,transparent)}
+.nav-logo{display:flex;align-items:center;gap:.75rem}
+.nav-logo-icon{width:36px;height:36px;background:linear-gradient(135deg,#6d28d9,#f59e0b);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.nav-logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;color:#fff;line-height:1.1}
+.nav-logo-sub{font-size:.65rem;color:#94a3b8;font-weight:400}
+.nav-links{display:flex;gap:.5rem;align-items:center}
+.nav-btn{padding:.45rem 1.1rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.07);color:#cbd5e1}
+.nav-btn:hover{background:rgba(255,255,255,.18);color:#fff;transform:translateY(-1px)}
+.nav-btn.active{background:#6d28d9;border-color:#6d28d9;color:#fff}
+.nav-btn.qr-btn{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#f59e0b}
+.nav-btn.qr-btn:hover{background:rgba(245,158,11,.3)}
+.hero-banner{background:linear-gradient(135deg,#0f172a 0%,#1e1b4b 60%,#312e81 100%);padding:3rem 2rem 2rem;text-align:center;position:relative;overflow:hidden}
+.hero-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(109,40,217,.3) 0%,transparent 60%),radial-gradient(ellipse at 80% 50%,rgba(245,158,11,.15) 0%,transparent 60%)}
+.hero-dots{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.hero-dot{position:absolute;border-radius:50%;background:rgba(255,255,255,.05);animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.hero-badge{display:inline-flex;align-items:center;gap:.4rem;background:rgba(109,40,217,.3);border:1px solid rgba(109,40,217,.5);border-radius:999px;padding:.3rem 1rem;font-size:.75rem;color:#a78bfa;font-weight:600;margin-bottom:1rem;position:relative;z-index:1}
+.hero-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:#6d28d9;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-size:2.2rem;font-weight:800;color:#fff;line-height:1.15;position:relative;z-index:1}
+.hero-title span{color:#f59e0b}
+.hero-sub{color:#94a3b8;font-size:.95rem;margin-top:.5rem;position:relative;z-index:1}
+.form-card{background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,.1);padding:2rem;max-width:640px;margin:-1.5rem auto 0;position:relative;z-index:1}
+.form-label{display:block;font-size:.82rem;font-weight:600;color:#374151;margin-bottom:.4rem;letter-spacing:.02em}
+.form-input{width:100%;padding:.75rem 1rem;border:1.5px solid #e2e8f0;border-radius:12px;font-size:.9rem;outline:none;transition:all .2s;background:#fafafa;color:#0f172a}
+.form-input:focus{border-color:#6d28d9;box-shadow:0 0 0 3px rgba(109,40,217,.1);background:#fff}
+textarea.form-input{resize:vertical;min-height:110px;line-height:1.6}
+.submit-btn{width:100%;padding:.85rem;background:linear-gradient(135deg,#6d28d9,#7c3aed);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.03em;box-shadow:0 4px 15px rgba(109,40,217,.4)}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(109,40,217,.5)}
+.submit-btn:disabled{opacity:.7;transform:none;cursor:wait}
+.login-card{background:#fff;border-radius:20px;box-shadow:0 8px 40px rgba(0,0,0,.1);padding:2.5rem;max-width:420px;margin:2rem auto}
+.login-icon{width:64px;height:64px;background:linear-gradient(135deg,#0f172a,#1e1b4b);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;margin:0 auto 1.5rem}
+.login-btn{width:100%;padding:.85rem;background:linear-gradient(135deg,#0f172a,#1e1b4b);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:all .2s;box-shadow:0 4px 15px rgba(15,23,42,.3)}
+.login-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(15,23,42,.4)}
+.pwd-wrap{position:relative}
+.pwd-toggle{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#94a3b8;padding:0;transition:color .2s}
+.pwd-toggle:hover{color:#6d28d9}
+.dash-header{background:#fff;border-radius:16px;padding:1.25rem 1.5rem;display:flex;justify-content:space-between;align-items:center;box-shadow:0 2px 12px rgba(0,0,0,.06);margin-bottom:1.25rem}
+.dash-title{font-size:1.4rem;font-weight:800;color:#0f172a}
+.dash-sub{font-size:.8rem;color:#94a3b8;margin-top:2px}
+.dash-actions{display:flex;gap:.5rem;align-items:center}
+.tab-btn{padding:.45rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .2s;background:#f1f5f9;color:#64748b;border:1px solid #e2e8f0}
+.tab-btn:hover{background:#e0e7ff;color:#4338ca}
+.tab-btn.active{background:#6d28d9;color:#fff;border-color:#6d28d9}
+.logout-btn{padding:.45rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;background:#fef2f2;color:#ef4444;border:1px solid #fecaca;cursor:pointer;transition:all .2s}
+.logout-btn:hover{background:#ef4444;color:#fff}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.25rem}
+.stat-card{border-radius:16px;padding:1.25rem;display:flex;align-items:center;gap:1rem;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.stat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.stat-num{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;line-height:1}
+.stat-lbl{font-size:.75rem;font-weight:600;opacity:.8;margin-top:2px}
+.stat-blue {background:linear-gradient(135deg,#eff6ff,#dbeafe);color:#1e40af}.stat-blue .stat-icon{background:#1e40af22}
+.stat-amber {background:linear-gradient(135deg,#fffbeb,#fef3c7);color:#92400e}.stat-amber .stat-icon{background:#92400e22}
+.stat-purple{background:linear-gradient(135deg,#f5f3ff,#ede9fe);color:#5b21b6}.stat-purple .stat-icon{background:#5b21b622}
+.stat-green {background:linear-gradient(135deg,#f0fdf4,#dcfce7);color:#14532d}.stat-green .stat-icon{background:#14532d22}
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem}
+.chart-card{background:#fff;border-radius:16px;padding:1.5rem;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.chart-card.full{grid-column:span 2}
+.chart-title{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:#0f172a;margin-bottom:1rem;text-align:center}
+.chart-wrap{height:220px}
+.chart-wrap-tall{height:280px}
+.priority-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem}
+.p-tab{padding:.35rem .9rem;border-radius:999px;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .15s;border:1.5px solid transparent}
+.p-tab-all {background:#f1f5f9;color:#475569;border-color:#e2e8f0} .p-tab-all.on {background:#0f172a;color:#fff;border-color:#0f172a}
+.p-tab-crit {background:#fee2e2;color:#7f1d1d;border-color:#fca5a5} .p-tab-crit.on {background:#ef4444;color:#fff;border-color:#ef4444}
+.p-tab-high {background:#fef3c7;color:#78350f;border-color:#fcd34d} .p-tab-high.on {background:#f59e0b;color:#fff;border-color:#f59e0b}
+.p-tab-med {background:#ede9fe;color:#4c1d95;border-color:#c4b5fd} .p-tab-med.on {background:#6d28d9;color:#fff;border-color:#6d28d9}
+.p-tab-low {background:#dcfce7;color:#14532d;border-color:#86efac} .p-tab-low.on {background:#10b981;color:#fff;border-color:#10b981}
+.filter-bar{background:#fff;border-radius:16px;padding:1rem 1.25rem;display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.filter-bar select{padding:.55rem .9rem;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.82rem;outline:none;background:#fafafa;color:#374151;cursor:pointer}
+.filter-bar select:focus{border-color:#6d28d9}
+.refresh-btn{padding:.55rem 1rem;border-radius:10px;font-size:.82rem;font-weight:600;background:#6d28d9;color:#fff;border:none;cursor:pointer;transition:all .2s}
+.refresh-btn:hover{background:#7c3aed;transform:translateY(-1px)}
+.query-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:16px;padding:1.25rem 1.5rem;margin-bottom:.75rem;cursor:pointer;transition:all .25s;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.query-card:hover{border-color:#6d28d9;transform:translateY(-2px);box-shadow:0 8px 24px rgba(109,40,217,.12)}
+.policy-card{border-left:4px solid #f59e0b!important}
+.query-subject{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:#0f172a}
+.query-meta{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem}
+.query-meta span{font-size:.75rem;color:#64748b}
+.query-msg{font-size:.82rem;color:#475569;margin-top:.5rem;line-height:1.5}
+.ai-chip{display:inline-flex;align-items:center;gap:.35rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:.4rem .75rem;font-size:.75rem;color:#1e40af;margin-top:.6rem}
+.badge{display:inline-flex;align-items:center;padding:.2rem .7rem;border-radius:999px;font-size:.72rem;font-weight:700;margin-left:.3rem}
+.b-critical{background:#fee2e2;color:#7f1d1d} .b-high{background:#fef3c7;color:#78350f}
+.b-medium {background:#ede9fe;color:#4c1d95} .b-low{background:#dcfce7;color:#14532d}
+.b-pending {background:#eff6ff;color:#1e3a8a} .b-progress{background:#fef3c7;color:#92400e}
+.b-escalated{background:#fee2e2;color:#991b1b} .b-resolved{background:#dcfce7;color:#14532d}
+.b-closed {background:#f1f5f9;color:#475569} .b-rejected{background:#fee2e2;color:#7f1d1d}
+.b-policy {background:#fef3c7;color:#92400e} .b-admin{background:#ede9fe;color:#5b21b6}
+.b-subadmin{background:#f0fdf4;color:#14532d}
+.team-card{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;box-shadow:0 1px 6px rgba(0,0,0,.05)}
+.team-avatar{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:800;font-family:'Syne',sans-serif;flex-shrink:0}
+.av-admin {background:linear-gradient(135deg,#ede9fe,#ddd6fe);color:#5b21b6}
+.av-subadmin{background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#14532d}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:1000;padding:1rem;backdrop-filter:blur(4px);animation:fadeIn .2s ease}
+.modal-box{background:#fff;border-radius:24px;padding:2rem;width:100%;max-width:700px;max-height:90vh;overflow-y:auto;position:relative;animation:slideUp .3s ease;box-shadow:0 24px 64px rgba(0,0,0,.2)}
+.modal-close{position:absolute;top:1.25rem;right:1.25rem;width:32px;height:32px;border-radius:50%;background:#f1f5f9;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#64748b;transition:all .2s}
+.modal-close:hover{background:#fee2e2;color:#ef4444}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(24px);opacity:0}to{transform:translateY(0);opacity:1}}
+.ai-box{border-radius:12px;padding:.9rem 1rem;margin-bottom:.75rem}
+.ai-analysis{background:#eff6ff;border:1px solid #bfdbfe}
+.ai-remedy {background:#f0fdf4;border:1px solid #bbf7d0}
+.ai-policy {background:#fffbeb;border:1px solid #fde68a}
+.ai-box-title{font-size:.72rem;font-weight:700;margin-bottom:.35rem}
+.alert {border-radius:12px;padding:.9rem 1rem;font-weight:600;font-size:.9rem}
+.alert-success{background:#f0fdf4;border:1px solid #86efac;color:#14532d}
+.alert-error {background:#fef2f2;border:1px solid #fca5a5;color:#7f1d1d}
+.qr-box{max-width:340px;text-align:center}
+#qr-display canvas,#qr-display img{border:8px solid #ede9fe;border-radius:16px;padding:.5rem}
+.spinner{width:2.5rem;height:2.5rem;margin:2.5rem auto;border:3px solid #ede9fe;border-top-color:#6d28d9;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.section{animation:fadeUp .4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#f1f5f9}
+::-webkit-scrollbar-thumb{background:#6d28d9;border-radius:3px}
+@media(max-width:768px){
+.stat-grid{grid-template-columns:1fr 1fr}
+.chart-grid{grid-template-columns:1fr}
+.chart-card.full{grid-column:span 1}
+.hero-title{font-size:1.6rem}
+.navbar{padding:0 1rem}
+.nav-logo-text{font-size:.85rem}
+.dash-header{flex-direction:column;align-items:flex-start;gap:.75rem}
+.form-card{padding:1.25rem}
+.modal-box{padding:1.25rem}
+}
+</style>
+</head>
+<body>
+<nav class="navbar">
+<div class="nav-logo">
+<div class="nav-logo-icon">🛡️</div>
+<div>
+<div class="nav-logo-text">AI Based Digital Gatekeeper</div>
+<div class="nav-logo-sub">Smart College Query Management</div>
+</div>
+</div>
+<div class="nav-links">
+<button onclick="showSection('user')" id="nav-user" class="nav-btn active">📝 Submit Query</button>
+<button onclick="showSection('admin')" id="nav-admin" class="nav-btn">🔐 Admin Panel</button>
+<button onclick="openQR()" class="nav-btn qr-btn">📱 QR Code</button>
+</div>
+</nav>
+<div style="max-width:1100px;margin:0 auto;padding:1.5rem">
+<!-- ═══════════ STUDENT SECTION ═══════════ -->
+<div id="sec-user" class="section">
+<div class="hero-banner" style="border-radius:20px;margin-bottom:1.5rem">
+<div class="hero-dots">
+<div class="hero-dot" style="width:200px;height:200px;top:-50px;left:-50px"></div>
+<div class="hero-dot" style="width:150px;height:150px;bottom:-30px;right:-30px;animation-delay:2s"></div>
+<div class="hero-dot" style="width:80px;height:80px;top:30px;right:20%;animation-delay:4s"></div>
+</div>
+<div class="hero-badge">🤖 AI-Powered Query System</div>
+<h1 class="hero-title">Have a Problem?<br><span>We've Got You Covered.</span></h1>
+<p class="hero-sub">Submit your query — our AI will instantly categorize, prioritize &amp; route it to the right department</p>
+</div>
+<div class="form-card">
+<form id="query-form">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+<div>
+<label class="form-label">Full Name *</label>
+<input type="text" id="s-name" required class="form-input" placeholder="e.g. Rahul Sharma">
+</div>
+<div>
+<label class="form-label">Email Address *</label>
+<input type="email" id="s-email" required class="form-input" placeholder="Enter your email">
+</div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+<div>
+<label class="form-label">Enrollment Number</label>
+<input type="text" id="s-enrollment" class="form-input" placeholder="e.g. 21CE001">
+</div>
+<div>
+<label class="form-label">Division / Section</label>
+<input type="text" id="s-division" class="form-input" placeholder="e.g. CE-A / Div 2">
+</div>
+</div>
+<div style="margin-bottom:1rem">
+<label class="form-label">Subject *</label>
+<input type="text" id="s-subject" required class="form-input" placeholder="Brief title of your issue">
+</div>
+<div style="margin-bottom:1.25rem">
+<label class="form-label">Detailed Message *</label>
+<textarea id="s-message" required class="form-input" placeholder="Describe your problem in detail. Our AI will read this to understand and categorize your query..."></textarea>
+</div>
+<button type="submit" class="submit-btn">🚀 Submit Query — AI Will Analyze It</button>
+</form>
+<div id="submit-result" style="margin-top:1rem;display:none"></div>
+</div>
+</div>
+<!-- ═══════════ ADMIN SECTION ═══════════ -->
+<div id="sec-admin" class="section" style="display:none">
+<div id="admin-login">
+<div class="login-card">
+<div class="login-icon">🛡️</div>
+<h2 style="font-size:1.5rem;font-weight:800;text-align:center;margin-bottom:.25rem">Admin Login</h2>
+<p style="text-align:center;color:#64748b;font-size:.85rem;margin-bottom:1.75rem">Restricted access — authorized personnel only</p>
+<form id="login-form">
+<div style="margin-bottom:1rem">
+<label class="form-label">Username</label>
+<input type="text" id="l-user" required class="form-input" placeholder="Enter your username" autocomplete="username">
+</div>
+<div style="margin-bottom:1.5rem">
+<label class="form-label">Password</label>
+<div class="pwd-wrap">
+<input type="password" id="l-pass" required class="form-input" placeholder="Enter your password" style="padding-right:2.75rem" autocomplete="current-password">
+<button type="button" class="pwd-toggle" onclick="togglePwd('l-pass','e1o','e1c')">
+<svg id="e1o" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+<svg id="e1c" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 011.36-2.553M6.53 6.53A9.956 9.956 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411M3 3l18 18"/></svg>
+</button>
+</div>
+</div>
+<button type="submit" class="login-btn">🔐 Login to Dashboard</button>
+</form>
+<p style="text-align:center;margin-top:1.25rem;font-size:.78rem;color:#94a3b8">🔒 New accounts can only be created by an existing admin from inside the dashboard.</p>
+</div>
+</div>
+<div id="admin-dash" style="display:none">
+<div class="dash-header">
+<div>
+<div class="dash-title">📊 Admin Dashboard</div>
+<div class="dash-sub" id="dash-sub-text">AI Based Digital Gatekeeper</div>
+</div>
+<div class="dash-actions">
+<button onclick="switchTab('charts')" id="tab-charts" class="tab-btn">📈 Charts</button>
+<button onclick="switchTab('queries')" id="tab-queries" class="tab-btn active">📋 Queries</button>
+<button onclick="switchTab('team')" id="tab-team" class="tab-btn" style="display:none">👥 Team</button>
+<button onclick="doLogout()" class="logout-btn">🚪 Logout</button>
+</div>
+</div>
+<div class="stat-grid" id="stat-grid"></div>
+<div id="tab-charts-content" style="display:none">
+<div class="chart-grid">
+<div class="chart-card"><div class="chart-title">Query Status Distribution</div><div class="chart-wrap"><canvas id="c-status"></canvas></div></div>
+<div class="chart-card"><div class="chart-title">Priority Breakdown</div><div class="chart-wrap"><canvas id="c-priority"></canvas></div></div>
+<div class="chart-card"><div class="chart-title">Last 7 Days Trend</div><div class="chart-wrap"><canvas id="c-trend"></canvas></div></div>
+<div class="chart-card"><div class="chart-title">Top Departments</div><div class="chart-wrap"><canvas id="c-dept"></canvas></div></div>
+<div class="chart-card full"><div class="chart-title">Top Query Categories</div><div class="chart-wrap-tall"><canvas id="c-category"></canvas></div></div>
+</div>
+</div>
+<div id="tab-queries-content">
+<div class="priority-tabs">
+<button class="p-tab p-tab-all on" onclick="setPriTab(this,'')">All</button>
+<button class="p-tab p-tab-crit" onclick="setPriTab(this,'Critical')">🔴 Critical</button>
+<button class="p-tab p-tab-high" onclick="setPriTab(this,'High')">🟠 High</button>
+<button class="p-tab p-tab-med" onclick="setPriTab(this,'Medium')">🟣 Medium</button>
+<button class="p-tab p-tab-low" onclick="setPriTab(this,'Low')">🟢 Low</button>
+</div>
+<div class="filter-bar">
+<select id="f-status" onchange="loadQueries()">
+<option value="">All Status</option>
+<option>Pending</option><option>In Progress</option>
+<option>Escalated</option><option>Resolved</option>
+<option>Closed</option><option>Rejected</option>
+</select>
+<button onclick="loadQueries()" class="refresh-btn">🔄 Refresh</button>
+</div>
+<div id="queries-list"></div>
+</div>
+<div id="tab-team-content" style="display:none">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:.75rem">
+<div>
+<div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700">👥 Team Management</div>
+<div style="font-size:.78rem;color:#64748b;margin-top:2px">Manage admin and sub-admin accounts</div>
+</div>
+<button onclick="openModal('modal-team')" style="padding:.55rem 1.1rem;background:linear-gradient(135deg,#6d28d9,#7c3aed);color:#fff;border:none;border-radius:10px;font-size:.82rem;font-weight:700;cursor:pointer">+ Add Team Member</button>
+</div>
+<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:.9rem 1rem;margin-bottom:1rem;font-size:.8rem;color:#78350f">
+<strong>🛡️ Admin:</strong> Full access — manage team, delete queries, all charts. &nbsp;|&nbsp;
+<strong>👤 Sub-Admin:</strong> View &amp; update queries only — cannot delete or manage team.
+</div>
+<div id="team-list"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- MODALS -->
+<div id="modal-query" class="modal-overlay" style="display:none">
+<div class="modal-box">
+<button onclick="closeModal('modal-query')" class="modal-close">✕</button>
+<div id="modal-query-content"></div>
+</div>
+</div>
+<div id="modal-qr" class="modal-overlay" style="display:none">
+<div class="modal-box qr-box">
+<button onclick="closeModal('modal-qr')" class="modal-close">✕</button>
+<div style="font-size:2.5rem;margin-bottom:.75rem">📱</div>
+<h2 style="font-size:1.4rem;font-weight:800;margin-bottom:.5rem">Scan to Open</h2>
+<p style="font-size:.82rem;color:#64748b;margin-bottom:1.25rem">Students scan this QR to directly open the query form on their phone</p>
+<div id="qr-display" style="display:flex;justify-content:center;margin-bottom:1rem"></div>
+<p id="qr-url" style="font-size:.7rem;color:#94a3b8;word-break:break-all;margin-bottom:1.25rem"></p>
+<button onclick="downloadQR()" style="width:100%;padding:.75rem;background:linear-gradient(135deg,#6d28d9,#7c3aed);color:#fff;border:none;border-radius:12px;font-weight:700;cursor:pointer">⬇️ Download QR Code</button>
+<p style="font-size:.72rem;color:#94a3b8;margin-top:.75rem">Print and paste on college notice board!</p>
+</div>
+</div>
+<div id="modal-team" class="modal-overlay" style="display:none">
+<div class="modal-box" style="max-width:440px">
+<button onclick="closeModal('modal-team')" class="modal-close">✕</button>
+<h2 style="font-size:1.3rem;font-weight:800;margin-bottom:1.5rem">➕ Add Team Member</h2>
+<form id="team-form">
+<div style="margin-bottom:1rem">
+<label class="form-label">Username *</label>
+<input type="text" id="tm-user" required class="form-input" placeholder="Choose a username">
+</div>
+<div style="margin-bottom:1rem">
+<label class="form-label">Email</label>
+<input type="email" id="tm-email" class="form-input" placeholder="admin@college.edu">
+</div>
+<div style="margin-bottom:1rem">
+<label class="form-label">Password *</label>
+<div class="pwd-wrap">
+<input type="password" id="tm-pass" required class="form-input" placeholder="Choose a strong password" style="padding-right:2.75rem">
+<button type="button" class="pwd-toggle" onclick="togglePwd('tm-pass','e3o','e3c')">
+<svg id="e3o" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+<svg id="e3c" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="display:none"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 011.36-2.553M6.53 6.53A9.956 9.956 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.025 10.025 0 01-4.132 5.411M3 3l18 18"/></svg>
+</button>
+</div>
+</div>
+<div style="margin-bottom:1.5rem">
+<label class="form-label">Role</label>
+<select id="tm-role" class="form-input" style="padding:.75rem 1rem">
+<option value="sub_admin">👤 Sub-Admin (view + update queries)</option>
+<option value="admin">🛡️ Admin (full access)</option>
+</select>
+</div>
+<button type="submit" class="login-btn" style="background:linear-gradient(135deg,#6d28d9,#7c3aed)">✅ Create Account</button>
+</form>
+<div id="team-result" style="margin-top:.75rem;display:none"></div>
+</div>
+</div>
+<script>
+'use strict';
+var token = localStorage.getItem('gk_token');
+var currentAdmin = JSON.parse(localStorage.getItem('gk_admin') || 'null');
+var currentPri = '';
+var API = '/api';
+var CH = {};
+function g(id){ return document.getElementById(id); }
+function v(id){ return g(id).value; }
+function auth(){ return {'Authorization':'Bearer '+token}; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmt(iso){ return iso ? new Date(iso).toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}) : '—'; }
+function pbadge(p){ var m={Critical:'b-critical',High:'b-high',Medium:'b-medium',Low:'b-low'}; return '<span class="badge '+(m[p]||'b-medium')+'">'+(p||'Medium')+'</span>'; }
+function sbadge(s){ var m={Pending:'b-pending','In Progress':'b-progress',Escalated:'b-escalated',Resolved:'b-resolved',Closed:'b-closed',Rejected:'b-rejected'}; return '<span class="badge '+(m[s]||'b-pending')+'">'+(s||'Pending')+'</span>'; }
+function showSection(s){
+g('sec-user').style.display = s==='user' ? 'block':'none';
+g('sec-admin').style.display = s==='admin' ? 'block':'none';
+g('nav-user').classList.toggle('active', s==='user');
+g('nav-admin').classList.toggle('active', s==='admin');
+if(s==='admin'){ token ? showDash() : showLogin(); }
+}
+function showLogin(){
+g('admin-login').style.display = 'block';
+g('admin-dash').style.display = 'none';
+}
+function showDash(){
+g('admin-login').style.display = 'none';
+g('admin-dash').style.display = 'block';
+var isAdmin = currentAdmin && currentAdmin.role==='admin';
+g('tab-team').style.display = isAdmin ? 'inline-flex' : 'none';
+if(currentAdmin){
+var lbl = currentAdmin.role==='admin' ? '🛡️ Admin' : '👤 Sub-Admin';
+g('dash-sub-text').textContent = 'Logged in as: '+currentAdmin.username+' · '+lbl;
+}
+loadStats(); loadQueries(); switchTab('queries');
+}
+function switchTab(t){
+['charts','queries','team'].forEach(function(tab){
+g('tab-'+tab+'-content').style.display = t===tab ? 'block':'none';
+g('tab-'+tab).classList.toggle('active', t===tab);
+});
+if(t==='charts') loadCharts();
+if(t==='team') loadTeam();
+}
+function openModal(id) { g(id).style.display='flex'; }
+function closeModal(id){ g(id).style.display='none'; }
+document.addEventListener('click',function(e){
+['modal-query','modal-qr','modal-team'].forEach(function(id){ if(e.target===g(id)) closeModal(id); });
+});
+function togglePwd(inputId,openId,closeId){
+var inp=g(inputId),eo=g(openId),ec=g(closeId);
+if(inp.type==='password'){ inp.type='text'; eo.style.display='none'; ec.style.display='block'; }
+else{ inp.type='password'; eo.style.display='block'; ec.style.display='none'; }
+}
+function setPriTab(btn,priority){
+document.querySelectorAll('.p-tab').forEach(function(b){ b.classList.remove('on'); });
+btn.classList.add('on'); currentPri=priority; loadQueries();
+}
+function openQR(){
+openModal('modal-qr');
+var url=window.location.origin+'/';
+g('qr-url').textContent=url;
+var c=g('qr-display'); c.innerHTML='';
+new QRCode(c,{text:url,width:210,height:210,colorDark:'#0f172a',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+}
+function downloadQR(){
+var canvas=document.querySelector('#qr-display canvas'); if(!canvas) return;
+var a=document.createElement('a'); a.download='Gatekeeper-QR.png'; a.href=canvas.toDataURL('image/png'); a.click();
+}
+function doLogout(){
+localStorage.removeItem('gk_token'); localStorage.removeItem('gk_admin');
+token=null; currentAdmin=null; g('login-form').reset(); showLogin(); showSection('user');
+}
+g('query-form').addEventListener('submit',async function(e){
+e.preventDefault();
+var btn=e.target.querySelector('button[type="submit"]');
+btn.textContent='⏳ AI is analyzing...'; btn.disabled=true;
+var res=g('submit-result');
+try{
+var r=await fetch(API+'/queries',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({student_name:v('s-name'),student_email:v('s-email'),enrollment_no:v('s-enrollment'),division:v('s-division'),subject:v('s-subject'),message:v('s-message')})});
+var d=await r.json();
+if(r.ok){
+var ph=d.is_policy?'<div class="ai-box ai-policy" style="margin-top:.75rem"><div class="ai-box-title" style="color:#92400e">📋 Instant Policy Response:</div><div style="font-size:.82rem;color:#78350f;white-space:pre-wrap">'+esc(d.suggested_remedy)+'</div></div>':'';
+res.innerHTML='<div class="alert alert-success">✅ Query submitted!<br><span style="font-weight:400;font-size:.85rem">Category: <strong>'+esc(d.category)+'</strong> · Priority: <strong>'+esc(d.priority)+'</strong> · Dept: <strong>'+esc(d.department||'Student Affairs')+'</strong></span><div style="margin-top:.5rem;font-size:.8rem;font-weight:400;color:#166634">📧 You will receive an email when your query is resolved.</div></div>'+ph;
+res.style.display='block'; g('query-form').reset();
+} else { throw new Error(d.error||'Submission failed'); }
+} catch(err){ res.innerHTML='<div class="alert alert-error">❌ '+err.message+'</div>'; res.style.display='block'; }
+finally{ btn.textContent='🚀 Submit Query — AI Will Analyze It'; btn.disabled=false; }
+});
+g('login-form').addEventListener('submit',async function(e){
+e.preventDefault();
+var btn=e.target.querySelector('button[type="submit"]');
+btn.textContent='⏳ Verifying...'; btn.disabled=true;
+try{
+var r=await fetch(API+'/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:v('l-user'),password:v('l-pass')})});
+var d=await r.json();
+if(r.ok){ token=d.access_token; currentAdmin=d.admin; localStorage.setItem('gk_token',token); localStorage.setItem('gk_admin',JSON.stringify(currentAdmin)); showDash(); }
+else{ alert('❌ '+(d.error||'Invalid credentials')); }
+} catch(err){ alert('❌ '+err.message); }
+finally{ btn.textContent='🔐 Login to Dashboard'; btn.disabled=false; }
+});
+async function loadStats(){
+try{
+var r=await fetch(API+'/queries/stats/overview',{headers:auth()});
+if(r.status===401){ doLogout(); return; }
+var s=await r.json();
+g('stat-grid').innerHTML=
+'<div class="stat-card stat-blue"><div class="stat-icon">📋</div><div><div class="stat-num">'+s.total_queries+'</div><div class="stat-lbl">Total Queries</div></div></div>'+
+'<div class="stat-card stat-amber"><div class="stat-icon">⏳</div><div><div class="stat-num">'+s.pending_queries+'</div><div class="stat-lbl">Pending</div></div></div>'+
+'<div class="stat-card stat-purple"><div class="stat-icon">🔄</div><div><div class="stat-num">'+s.in_progress_queries+'</div><div class="stat-lbl">In Progress</div></div></div>'+
+'<div class="stat-card stat-green"><div class="stat-icon">✅</div><div><div class="stat-num">'+s.resolved_queries+'</div><div class="stat-lbl">Resolved</div></div></div>';
+} catch(err){ console.error(err); }
+}
+async function loadCharts(){
+try{
+var r=await fetch(API+'/queries/stats/charts',{headers:auth()});
+var d=await r.json();
+mkDoughnut('c-status',d.status); mkBar('c-priority',d.priority); mkLine('c-trend',d.trend); mkBar('c-dept',d.department); mkBarH('c-category',d.category);
+} catch(err){ console.error(err); }
+}
+function mk(id,type,data,opts){
+opts=opts||{};
+if(CH[id]) CH[id].destroy();
+CH[id]=new Chart(g(id).getContext('2d'),{type:type,data:data,options:{responsive:true,maintainAspectRatio:false,plugins:{legend:opts.legend||{}},scales:opts.scales||{}}});
+}
+function mkDoughnut(id,cd){ mk(id,'doughnut',{labels:cd.labels,datasets:[{data:cd.data,backgroundColor:cd.colors,borderWidth:2}]},{legend:{position:'bottom',labels:{font:{size:10},padding:10}}}); }
+function mkBar(id,cd){ mk(id,'bar',{labels:cd.labels,datasets:[{data:cd.data,backgroundColor:cd.colors,borderRadius:8}]},{legend:{display:false},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}); }
+function mkBarH(id,cd){
+if(CH[id]) CH[id].destroy();
+CH[id]=new Chart(g(id).getContext('2d'),{type:'bar',data:{labels:cd.labels,datasets:[{data:cd.data,backgroundColor:cd.colors,borderRadius:8}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,ticks:{stepSize:1}}}}});
+}
+function mkLine(id,cd){ mk(id,'line',{labels:cd.labels,datasets:[{data:cd.data,borderColor:'#6d28d9',backgroundColor:'rgba(109,40,217,.08)',borderWidth:2.5,tension:0.4,fill:true,pointBackgroundColor:'#6d28d9',pointRadius:4}]},{legend:{display:false},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}); }
+async function loadQueries(){
+var st=v('f-status');
+var url=API+'/queries?';
+if(st) url+='status='+encodeURIComponent(st)+'&';
+if(currentPri) url+='priority='+encodeURIComponent(currentPri)+'&';
+var list=g('queries-list'); list.innerHTML='<div class="spinner"></div>';
+try{
+var r=await fetch(url,{headers:auth()});
+if(r.status===401){ doLogout(); return; }
+var qs=await r.json();
+if(!qs.length){ list.innerHTML='<p style="text-align:center;color:#94a3b8;padding:2rem">No queries found.</p>'; return; }
+list.innerHTML=qs.map(function(q){
+return '<div class="query-card'+(q.is_policy?' policy-card':'')+'" onclick="openQuery(\''+q.id+'\')">'+
+'<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem">'+
+'<div class="query-subject">'+esc(q.subject)+'</div>'+
+'<div>'+(q.is_policy?'<span class="badge b-policy">📋 Policy</span>':'')+pbadge(q.priority)+sbadge(q.status)+(q.email_sent?'<span class="badge" style="background:#dcfce7;color:#14532d">📧 Emailed</span>':'')+'</div>'+
+'</div>'+
+'<div class="query-meta"><span>👤 '+esc(q.student_name)+'</span>'+(q.enrollment_no?'<span>🎓 '+esc(q.enrollment_no)+'</span>':'')+(q.division?'<span>🏫 '+esc(q.division)+'</span>':'')+'<span>📧 '+esc(q.student_email)+'</span><span>🏷️ '+esc(q.category)+'</span><span>🕐 '+fmt(q.created_at)+'</span>'+(q.updated_by?'<span>✏️ '+esc(q.updated_by)+'</span>':'')+'</div>'+
+'<div class="query-msg">'+esc(q.message).substring(0,160)+(q.message.length>160?'…':'')+'</div>'+
+(q.ai_analysis?'<div class="ai-chip">🤖 '+esc(q.ai_analysis)+'</div>':'')+
+'</div>';
+}).join('');
+} catch(err){ list.innerHTML='<div class="alert alert-error">❌ '+err.message+'</div>'; }
+}
+async function openQuery(id){
+openModal('modal-query'); g('modal-query-content').innerHTML='<div class="spinner"></div>';
+try{
+var r=await fetch(API+'/queries/'+id,{headers:auth()});
+var q=await r.json();
+var isAdmin=currentAdmin&&currentAdmin.role==='admin';
+var pb=q.is_policy?'<div class="ai-box ai-policy"><div class="ai-box-title" style="color:#92400e">📋 Auto Policy Response</div><div style="font-size:.82rem;color:#78350f;white-space:pre-wrap">'+esc(q.suggested_remedy)+'</div></div>':'';
+var ab=(q.ai_analysis&&!q.is_policy)?'<div class="ai-box ai-analysis"><div class="ai-box-title" style="color:#1e40af">🤖 AI Analysis</div><div style="font-size:.82rem;color:#1e3a8a">'+esc(q.ai_analysis)+'</div></div>':'';
+var rb=(q.suggested_remedy&&!q.is_policy)?'<div class="ai-box ai-remedy"><div class="ai-box-title" style="color:#14532d">💡 Suggested Remedy (emailed on Resolve)</div><div style="font-size:.82rem;color:#166534;white-space:pre-wrap">'+esc(q.suggested_remedy)+'</div></div>':'';
+var so=['Pending','In Progress','Escalated','Resolved','Closed','Rejected'].map(function(s){return '<option'+(q.status===s?' selected':'')+'>'+s+'</option>';}).join('');
+var po=['Critical','High','Medium','Low'].map(function(p){return '<option'+(q.priority===p?' selected':'')+'>'+p+'</option>';}).join('');
+g('modal-query-content').innerHTML=
+'<h2 style="font-family:\'Syne\',sans-serif;font-size:1.25rem;font-weight:800;margin-bottom:.5rem">'+esc(q.subject)+'</h2>'+
+'<div style="margin-bottom:1rem">'+(q.is_policy?'<span class="badge b-policy">📋 Policy</span>':'')+pbadge(q.priority)+sbadge(q.status)+(q.email_sent?'<span class="badge" style="background:#dcfce7;color:#14532d;margin-left:4px">📧 Email Sent</span>':'')+'</div>'+
+'<div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;font-size:.82rem;color:#475569;margin-bottom:1rem">'+
+'<div><strong>👤 Student:</strong> '+esc(q.student_name)+'</div><div><strong>📧 Email:</strong> '+esc(q.student_email)+'</div>'+
+(q.enrollment_no?'<div><strong>🎓 Enrollment:</strong> '+esc(q.enrollment_no)+'</div>':'')+
+(q.division?'<div><strong>🏫 Division:</strong> '+esc(q.division)+'</div>':'')+
+'<div><strong>🏷️ Category:</strong> '+esc(q.category)+'</div><div><strong>🏢 Dept:</strong> '+esc(q.department||'Student Affairs')+'</div>'+
+'<div><strong>📅 Submitted:</strong> '+fmt(q.created_at)+'</div><div><strong>🔄 Updated:</strong> '+fmt(q.updated_at)+(q.updated_by?' by <em>'+esc(q.updated_by)+'</em>':'')+'</div>'+
+'</div>'+
+'<div style="margin-bottom:1rem"><div style="font-size:.8rem;font-weight:700;color:#374151;margin-bottom:.4rem">📝 Message</div>'+
+'<div style="background:#f8fafc;border-radius:12px;padding:.9rem;font-size:.85rem;color:#475569;white-space:pre-wrap;line-height:1.6">'+esc(q.message)+'</div></div>'+
+pb+ab+rb+
+'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;margin-bottom:1rem">'+
+'<div><label class="form-label">Status</label><select id="u-status" class="form-input" style="padding:.6rem">'+so+'</select></div>'+
+'<div><label class="form-label">Priority</label><select id="u-priority" class="form-input" style="padding:.6rem">'+po+'</select></div>'+
+'<div><label class="form-label">Category</label><input type="text" id="u-category" value="'+esc(q.category)+'" class="form-input" style="padding:.6rem"></div>'+
+'</div>'+
+'<div style="margin-bottom:1.25rem"><label class="form-label">📋 Admin Notes <span style="font-weight:400;color:#94a3b8">(included in resolution email)</span></label>'+
+'<textarea id="u-notes" rows="3" class="form-input" placeholder="Add your notes for student...">'+esc(q.admin_notes||'')+'</textarea></div>'+
+'<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem">'+
+(isAdmin?'<button onclick="doDelete(\''+q.id+'\')" style="padding:.65rem 1.25rem;background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:10px;font-weight:700;cursor:pointer;font-size:.85rem">🗑️ Delete</button>':'<div style="font-size:.78rem;color:#94a3b8">⚠️ Only admin can delete</div>')+
+'<div style="display:flex;gap:.5rem">'+
+'<button onclick="closeModal(\'modal-query\')" style="padding:.65rem 1.25rem;background:#f1f5f9;color:#475569;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.85rem">Cancel</button>'+
+'<button onclick="doUpdate(\''+q.id+'\')" style="padding:.65rem 1.25rem;background:linear-gradient(135deg,#6d28d9,#7c3aed);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:.85rem">💾 Save Changes</button>'+
+'</div></div>'+
+(!q.is_policy&&q.status!=='Resolved'&&q.status!=='Closed'?'<div style="margin-top:.75rem;padding:.75rem;background:#f0fdf4;border-radius:10px;font-size:.78rem;color:#166534">📧 <strong>Auto Email:</strong> Changing status to "Resolved" or "Closed" will automatically email the student.</div>':'');
+} catch(err){ g('modal-query-content').innerHTML='<div class="alert alert-error">❌ '+err.message+'</div>'; }
+}
+async function doUpdate(id){
+try{
+var r=await fetch(API+'/queries/'+id,{method:'PATCH',headers:Object.assign({'Content-Type':'application/json'},auth()),
+body:JSON.stringify({status:v('u-status'),priority:v('u-priority'),category:v('u-category'),admin_notes:v('u-notes')})});
+if(r.ok){ closeModal('modal-query'); loadQueries(); loadStats(); }
+else{ var d=await r.json(); alert('❌ '+(d.error||'Update failed')); }
+} catch(err){ alert('❌ '+err.message); }
+}
+async function doDelete(id){
+if(!confirm('⚠️ Permanently delete this query?')) return;
+try{
+var r=await fetch(API+'/queries/'+id,{method:'DELETE',headers:auth()});
+if(r.ok){ closeModal('modal-query'); loadQueries(); loadStats(); }
+else{ var d=await r.json(); alert('❌ '+(d.error||'Delete failed')); }
+} catch(err){ alert('❌ '+err.message); }
+}
+async function loadTeam(){
+var list=g('team-list'); list.innerHTML='<div class="spinner"></div>';
+try{
+var r=await fetch(API+'/admin/team',{headers:auth()});
+var team=await r.json();
+if(!team.length){ list.innerHTML='<p style="text-align:center;color:#94a3b8;padding:2rem">No team members found.</p>'; return; }
+list.innerHTML=team.map(function(m){
+var isMe=currentAdmin&&m.id===currentAdmin.id;
+var isAdm=m.role==='admin';
+return '<div class="team-card">'+
+'<div style="display:flex;align-items:center;gap:.9rem">'+
+'<div class="team-avatar '+(isAdm?'av-admin':'av-subadmin')+'">'+m.username.charAt(0).toUpperCase()+'</div>'+
+'<div>'+
+'<div style="font-family:\'Syne\',sans-serif;font-size:.92rem;font-weight:700">'+esc(m.username)+(isMe?' <span style="font-size:.7rem;color:#94a3b8">(you)</span>':'')+'</div>'+
+'<div style="font-size:.75rem;color:#64748b;margin-top:1px">'+esc(m.email||'—')+'</div>'+
+'<div style="font-size:.72rem;color:#94a3b8;margin-top:2px">Joined: '+fmt(m.created_at)+' · Resolved: '+(m.queries_resolved||0)+(m.created_by?' · Added by: '+esc(m.created_by):'')+'</div>'+
+'</div></div>'+
+'<div style="display:flex;align-items:center;gap:.5rem">'+
+'<span class="badge '+(isAdm?'b-admin':'b-subadmin')+'">'+(isAdm?'🛡️ Admin':'👤 Sub-Admin')+'</span>'+
+(!isMe?'<button onclick="removeMember(\''+m.id+'\',\''+esc(m.username)+'\')" style="padding:.35rem .75rem;background:#fef2f2;color:#ef4444;border:1px solid #fecaca;border-radius:8px;font-size:.75rem;font-weight:700;cursor:pointer">Remove</button>':'')+
+'</div></div>';
+}).join('');
+} catch(err){ list.innerHTML='<div class="alert alert-error">❌ '+err.message+'</div>'; }
+}
+g('team-form').addEventListener('submit',async function(e){
+e.preventDefault();
+var res=g('team-result'); res.style.display='none';
+try{
+var r=await fetch(API+'/admin/register',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},auth()),
+body:JSON.stringify({username:v('tm-user'),email:v('tm-email'),password:v('tm-pass'),role:v('tm-role')})});
+var d=await r.json();
+if(r.ok){ res.innerHTML='<div class="alert alert-success">✅ Account created!</div>'; res.style.display='block'; g('team-form').reset(); setTimeout(function(){ closeModal('modal-team'); loadTeam(); res.style.display='none'; },1800); }
+else{ res.innerHTML='<div class="alert alert-error">❌ '+(d.error||'Failed')+'</div>'; res.style.display='block'; }
+} catch(err){ res.innerHTML='<div class="alert alert-error">❌ '+err.message+'</div>'; res.style.display='block'; }
+});
+async function removeMember(id,username){
+if(!confirm('Remove '+username+' from the team?')) return;
+try{
+var r=await fetch(API+'/admin/team/'+id,{method:'DELETE',headers:auth()});
+if(r.ok) loadTeam();
+else{ var d=await r.json(); alert('❌ '+(d.error||'Failed')); }
+} catch(err){ alert('❌ '+err.message); }
+}
+document.addEventListener('DOMContentLoaded',function(){
+showSection('user');p
+if(token&&currentAdmin){
+fetch(API+'/admin/me',{headers:auth()})
+.then(function(r){ if(!r.ok){ localStorage.removeItem('gk_token'); localStorage.removeItem('gk_admin'); token=null; currentAdmin=null; } })
+.catch(function(){});
+}
+});
+</script>
+</body>
+</html>
