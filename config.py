@@ -4,14 +4,14 @@ load_dotenv()
 
 # MongoDB Atlas
 MONGO_URL = os.getenv('MONGO_URL', 'mongodb+srv://admin:Silveroak123@cluster0.lgxvgfh.mongodb.net/?appName=Cluster0')
-DB_NAME   = os.getenv('DB_NAME', 'ai_digital_gatekeeper_db')
+DB_NAME = os.getenv('DB_NAME', 'ai_digital_gatekeeper_db')
 
 # Gemini AI
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY', 'AIzaSyAWU7kYjXQNHx4Og_JVqo5DWk0Ug3SapGc3')
 
 # JWT
-JWT_SECRET_KEY       = os.getenv('JWT_SECRET_KEY', 'gatekeeper_secret_2024')
-JWT_ALGORITHM        = "HS256"
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'gatekeeper_secret_2024')
+JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_HOURS = 24
 
 # Flask
@@ -20,13 +20,13 @@ FLASK_HOST = '0.0.0.0'
 DEBUG_MODE = os.getenv('DEBUG', 'False') == 'True'
 
 # ── SMTP Email (for auto-reply when query resolved) ────────────
-# Use Gmail: enable 2FA → generate App Password → paste below
+# Use Gmail: enable 2FA → generate App Password (16 chars, no spaces) → paste in .env
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', 587))
-SMTP_USER = os.getenv('SMTP_USER', '')          # Your Gmail address
-SMTP_PASS = os.getenv('SMTP_PASS', '')          # Gmail App Password (16 chars)
+SMTP_USER = os.getenv('SMTP_USER', '') # Your Gmail address
+SMTP_PASS = os.getenv('SMTP_PASS', '') # Gmail App Password (16 chars)
 SMTP_FROM_NAME = os.getenv('SMTP_FROM_NAME', 'AI Digital Gatekeeper')
-COLLEGE_NAME   = os.getenv('COLLEGE_NAME', 'Silver Oak University')
+COLLEGE_NAME = os.getenv('COLLEGE_NAME', 'Silver Oak University')
 
 # ── College Contact Info ───────────────────────────────────────
 COLLEGE_EMAIL = os.getenv('COLLEGE_EMAIL', 'admin@silveroak.edu.in')
@@ -59,7 +59,7 @@ QUERY_CATEGORIES = [
 ]
 
 PRIORITY_LEVELS = ['Low', 'Medium', 'High', 'Critical']
-STATUS_OPTIONS  = ['Pending', 'In Progress', 'Escalated', 'Resolved', 'Closed', 'Rejected']
+STATUS_OPTIONS = ['Pending', 'In Progress', 'Escalated', 'Resolved', 'Closed', 'Rejected']
 
 CATEGORY_TO_DEPARTMENT = {
     'Attendance Issues':'Academic Office','Exam Related':'Examination Cell',
@@ -93,3 +93,4 @@ CATEGORY_TO_DEPARTMENT = {
     'Late Fine Dispute':'Library','Faculty / Staff Complaint':'Principal / Dean Office',
     'Discrimination Complaint':'Grievance Cell','Others':'Student Affairs'
 }
+
