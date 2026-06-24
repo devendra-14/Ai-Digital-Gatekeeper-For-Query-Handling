@@ -1,15 +1,28 @@
-from pymongo import MongoClient
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
+from pymongo import MongoClient
 from config import MONGO_URL, DB_NAME
+
+# India Standard Time = UTC + 5:30
+IST = timezone(timedelta(hours=5, minutes=30))
+
+
+def now_ist():
+    """Current time in IST, as a timezone-aware datetime."""
+    return datetime.now(IST)
+
+
+def now_ist_iso():
+    """Current time in IST as ISO string (what gets saved to MongoDB)."""
+    return now_ist().isoformat()
 
 
 class Database:
     def __init__(self):
         try:
             self.client = MongoClient(MONGO_URL, serverSelectionTimeoutMS=5000)
-            self.db     = self.client[DB_NAME]
-            self.admins  = self.db.admins
+            self.db = self.client[DB_NAME]
+            self.admins = self.db.admins
             self.queries = self.db.queries
             self.client.server_info()
             print("✅ MongoDB Connected!")
@@ -25,13 +38,13 @@ class Database:
         role: 'admin' (full access) | 'sub_admin' (view + update, no delete/team mgmt)
         """
         admin = {
-            'id':            str(uuid.uuid4()),
-            'username':      username,
-            'email':         email,
+            'id': str(uuid.uuid4()),
+            'username': username,
+            'email': email,
             'password_hash': password_hash,
-            'role':          role,
-            'created_by':    created_by,
-            'created_at':    datetime.utcnow().isoformat(),
+            'role': role,
+            'created_by': created_by,
+            'created_at': now_ist_iso(),
             'queries_resolved': 0,
         }
         self.admins.insert_one(admin)
@@ -64,26 +77,26 @@ class Database:
 
     def create_query(self, data):
         query = {
-            'id':               str(uuid.uuid4()),
-            'student_name':     data['student_name'],
-            'student_email':    data['student_email'],
-            'enrollment_no':    data.get('enrollment_no', ''),
-            'division':         data.get('division', ''),
-            'subject':          data.get('subject', ''),
-            'message':          data['message'],
-            'category':         data.get('category', 'Others'),
-            'priority':         data.get('priority', 'Medium'),
-            'department':       data.get('department', 'Student Affairs'),
-            'status':           'Pending',
-            'ai_analysis':      data.get('ai_analysis', ''),
+            'id': str(uuid.uuid4()),
+            'student_name': data['student_name'],
+            'student_email': data['student_email'],
+            'enrollment_no': data.get('enrollment_no', ''),
+            'division': data.get('division', ''),
+            'subject': data.get('subject', ''),
+            'message': data['message'],
+            'category': data.get('category', 'Others'),
+            'priority': data.get('priority', 'Medium'),
+            'department': data.get('department', 'Student Affairs'),
+            'status': 'Pending',
+            'ai_analysis': data.get('ai_analysis', ''),
             'suggested_remedy': data.get('suggested_remedy', ''),
-            'is_policy':        data.get('is_policy', False),
-            'admin_notes':      None,
-            'updated_by':       None,
-            'email_sent':       False,
-            'created_at':       datetime.utcnow().isoformat(),
-            'updated_at':       datetime.utcnow().isoformat(),
-            'resolved_at':      None,
+            'is_policy': data.get('is_policy', False),
+            'admin_notes': None,
+            'updated_by': None,
+            'email_sent': False,
+            'created_at': now_ist_iso(),
+            'updated_at': now_ist_iso(),
+            'resolved_at': None,
         }
         self.queries.insert_one(query)
         query.pop('_id', None)
@@ -97,9 +110,9 @@ class Database:
         return self.queries.find_one({'id': query_id}, {'_id': 0})
 
     def update_query(self, query_id, update_data):
-        update_data['updated_at'] = datetime.utcnow().isoformat()
+        update_data['updated_at'] = now_ist_iso()
         if update_data.get('status') in ['Resolved', 'Closed']:
-            update_data['resolved_at'] = datetime.utcnow().isoformat()
+            update_data['resolved_at'] = now_ist_iso()
         self.queries.update_one({'id': query_id}, {'$set': update_data})
         return True
 
@@ -112,36 +125,36 @@ class Database:
     def get_query_stats(self):
         all_q = list(self.queries.find({}, {'_id': 0}))
         stats = {
-            'total_queries':        len(all_q),
-            'pending_queries':      len([q for q in all_q if q['status'] == 'Pending']),
-            'in_progress_queries':  len([q for q in all_q if q['status'] == 'In Progress']),
-            'escalated_queries':    len([q for q in all_q if q['status'] == 'Escalated']),
-            'resolved_queries':     len([q for q in all_q if q['status'] == 'Resolved']),
-            'closed_queries':       len([q for q in all_q if q['status'] == 'Closed']),
-            'rejected_queries':     len([q for q in all_q if q['status'] == 'Rejected']),
-            'critical_count':       len([q for q in all_q if q['priority'] == 'Critical']),
-            'high_priority_count':  len([q for q in all_q if q['priority'] == 'High']),
+            'total_queries': len(all_q),
+            'pending_queries': len([q for q in all_q if q['status'] == 'Pending']),
+            'in_progress_queries': len([q for q in all_q if q['status'] == 'In Progress']),
+            'escalated_queries': len([q for q in all_q if q['status'] == 'Escalated']),
+            'resolved_queries': len([q for q in all_q if q['status'] == 'Resolved']),
+            'closed_queries': len([q for q in all_q if q['status'] == 'Closed']),
+            'rejected_queries': len([q for q in all_q if q['status'] == 'Rejected']),
+            'critical_count': len([q for q in all_q if q['priority'] == 'Critical']),
+            'high_priority_count': len([q for q in all_q if q['priority'] == 'High']),
             'medium_priority_count':len([q for q in all_q if q['priority'] == 'Medium']),
-            'low_priority_count':   len([q for q in all_q if q['priority'] == 'Low']),
-            'category_breakdown':   {},
+            'low_priority_count': len([q for q in all_q if q['priority'] == 'Low']),
+            'category_breakdown': {},
             'department_breakdown': {},
         }
         for q in all_q:
-            cat  = q.get('category', 'Others')
+            cat = q.get('category', 'Others')
             dept = q.get('department', 'Student Affairs')
-            stats['category_breakdown'][cat]   = stats['category_breakdown'].get(cat, 0) + 1
+            stats['category_breakdown'][cat] = stats['category_breakdown'].get(cat, 0) + 1
             stats['department_breakdown'][dept] = stats['department_breakdown'].get(dept, 0) + 1
         return stats
 
     def get_daily_trend(self, days=7):
         result = {'labels': [], 'data': []}
-        today  = datetime.utcnow().date()
+        today = now_ist().date()
         for i in range(days - 1, -1, -1):
-            day       = today - timedelta(days=i)
-            day_str   = day.strftime('%b %d')
-            day_start = datetime.combine(day, datetime.min.time()).isoformat()
-            day_end   = datetime.combine(day, datetime.max.time()).isoformat()
-            count     = self.queries.count_documents(
+            day = today - timedelta(days=i)
+            day_str = day.strftime('%b %d')
+            day_start = datetime.combine(day, datetime.min.time(), tzinfo=IST).isoformat()
+            day_end = datetime.combine(day, datetime.max.time(), tzinfo=IST).isoformat()
+            count = self.queries.count_documents(
                 {'created_at': {'$gte': day_start, '$lte': day_end}}
             )
             result['labels'].append(day_str)
@@ -150,3 +163,4 @@ class Database:
 
 
 db = Database()
+
